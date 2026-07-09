@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import PacienteDetailPage from './PacienteDetailPage';
@@ -114,9 +114,11 @@ test('el botón de acción abre el modal con el paciente fijo', async () => {
   renderPage();
 
   await screen.findByText('Juan Pérez');
-  await userEvent.click(screen.getByRole('button', { name: /Registrar signos vitales/ }));
+  await act(async () => {
+    await userEvent.click(screen.getByRole('button', { name: /Registrar signos vitales/ }));
+  });
 
-  expect(screen.getByRole('heading', { name: 'Registrar signos vitales' })).toBeInTheDocument();
+  expect(await screen.findByRole('heading', { name: 'Registrar signos vitales' })).toBeInTheDocument();
 });
 
 test('muestra reintentar cuando falla la carga', async () => {

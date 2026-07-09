@@ -71,6 +71,17 @@ const PacienteDetailPage: React.FC = () => {
     }
   }, [id]);
 
+  // Refresco silencioso: actualiza la ficha sin tocar `loading`, para que el
+  // modal se cierre con su propia animación y no parpadee el Skeleton completo.
+  const refreshPaciente = useCallback(async () => {
+    try {
+      const data = await pacientesService.findOne(Number(id));
+      setPaciente(data);
+    } catch {
+      // Mantiene los datos actuales en pantalla; el modal ya mostró su toast.
+    }
+  }, [id]);
+
   useEffect(() => {
     loadPaciente();
   }, [loadPaciente]);
@@ -400,19 +411,19 @@ const PacienteDetailPage: React.FC = () => {
         open={open === 'control'}
         pacienteId={paciente.id}
         onOpenChange={(o) => setOpen(o ? 'control' : null)}
-        onCreated={loadPaciente}
+        onCreated={refreshPaciente}
       />
       <NuevaRecetaModal
         open={open === 'receta'}
         pacienteId={paciente.id}
         onOpenChange={(o) => setOpen(o ? 'receta' : null)}
-        onCreated={loadPaciente}
+        onCreated={refreshPaciente}
       />
       <NuevaRemisionModal
         open={open === 'remision'}
         pacienteId={paciente.id}
         onOpenChange={(o) => setOpen(o ? 'remision' : null)}
-        onCreated={loadPaciente}
+        onCreated={refreshPaciente}
       />
     </div>
   );

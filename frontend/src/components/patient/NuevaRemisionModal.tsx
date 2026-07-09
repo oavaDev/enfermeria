@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Modal } from '../../ui/Modal';
 import { Input } from '../../ui/Input';
 import { Select } from '../../ui/Select';
@@ -38,6 +38,11 @@ export function NuevaRemisionModal({ open, pacienteId, onOpenChange, onCreated }
     setDiagnostico('');
     setObservaciones('');
   };
+
+  // Limpia el formulario al cerrar, para no reabrir con valores viejos.
+  useEffect(() => {
+    if (!open) reset();
+  }, [open]);
 
   const handleSubmit = async () => {
     if (!motivo.trim()) {

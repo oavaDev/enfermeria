@@ -58,7 +58,16 @@ export function NuevaRecetaModal({ open, pacienteId, onOpenChange, onCreated }: 
     setObservaciones('');
   };
 
+  // Limpia el formulario al cerrar, para no reabrir con valores viejos.
+  useEffect(() => {
+    if (!open) reset();
+  }, [open]);
+
   const handleSubmit = async () => {
+    if (!medicamentoId || !dosis.trim() || !frecuencia.trim() || !fechaInicio || !fechaFin) {
+      toast.error('Completa los campos obligatorios');
+      return;
+    }
     setSaving(true);
     try {
       const dto: Partial<Receta> = {
