@@ -1,8 +1,8 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { Toaster } from 'react-hot-toast';
+import { AppToaster } from './ui/Toast';
 import { AuthProvider, useAuth } from './hooks/useAuth';
-import Layout from './components/layout/Layout';
+import { AppShell } from './components/AppShell';
 import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
 import PacientesPage from './pages/PacientesPage';
@@ -32,7 +32,7 @@ const AppRoutes: React.FC = () => {
         path="/"
         element={
           <ProtectedRoute>
-            <Layout />
+            <AppShell />
           </ProtectedRoute>
         }
       >
@@ -56,7 +56,7 @@ const App: React.FC = () => {
     <BrowserRouter>
       <AuthProvider>
         <AppRoutes />
-        <Toaster position="top-right" />
+        <AppToaster />
       </AuthProvider>
     </BrowserRouter>
   );
