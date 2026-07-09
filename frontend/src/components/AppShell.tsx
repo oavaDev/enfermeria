@@ -1,12 +1,25 @@
 import { Menu, Moon, Search, Sun, X } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import { useTheme } from '../hooks/useTheme';
+import { CommandPalette } from './CommandPalette';
 import { Sidebar } from './Sidebar';
 
 export function AppShell() {
   const { theme, toggle } = useTheme();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [paletteOpen, setPaletteOpen] = useState(false);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setPaletteOpen(true);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   return (
     <div className="min-h-screen bg-bg text-text">
@@ -49,8 +62,8 @@ export function AppShell() {
 
             <button
               type="button"
-              disabled
-              className="ml-auto flex min-w-0 max-w-xs flex-1 items-center gap-2 rounded-sm border border-border bg-surface-2 px-3 py-2 text-left text-sm text-faint disabled:cursor-not-allowed sm:flex-none sm:min-w-[220px]"
+              onClick={() => setPaletteOpen(true)}
+              className="ml-auto flex min-w-0 max-w-xs flex-1 items-center gap-2 rounded-sm border border-border bg-surface-2 px-3 py-2 text-left text-sm text-faint transition-colors hover:border-border-strong hover:text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent sm:flex-none sm:min-w-[220px]"
             >
               <Search size={15} className="shrink-0" />
               <span className="hidden truncate sm:inline">Buscar paciente o acción</span>
@@ -80,6 +93,8 @@ export function AppShell() {
           </main>
         </div>
       </div>
+
+      <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} />
     </div>
   );
 }
