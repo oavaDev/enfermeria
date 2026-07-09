@@ -50,13 +50,21 @@ export function CommandPalette({ open, onOpenChange }: Props) {
       setPacientes([]);
       return;
     }
+    let ignore = false;
     const timer = setTimeout(() => {
       pacientesService
         .findAll({ q })
-        .then((result) => setPacientes(result))
-        .catch(() => setPacientes([]));
+        .then((result) => {
+          if (!ignore) setPacientes(result);
+        })
+        .catch(() => {
+          if (!ignore) setPacientes([]);
+        });
     }, 250);
-    return () => clearTimeout(timer);
+    return () => {
+      ignore = true;
+      clearTimeout(timer);
+    };
   }, [query]);
 
   useEffect(() => {
@@ -119,6 +127,7 @@ export function CommandPalette({ open, onOpenChange }: Props) {
                   onMouseEnter={() => setActiveIndex(index)}
                   className={cn(
                     'flex w-full items-center justify-between gap-3 rounded-sm px-3 py-2 text-left text-sm transition-colors',
+                    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent',
                     isActive ? 'bg-accent-soft text-accent-strong' : 'text-text hover:bg-surface-2',
                   )}
                 >
