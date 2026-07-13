@@ -62,25 +62,25 @@ const MedicamentosPage: React.FC = () => {
 
   const { isAdmin } = useAuth();
 
-  // Debounce (250ms) de la búsqueda: al asentarse, `setFilters` resetea a página 1
-  // atómicamente. Se omite el primer render para no disparar un fetch redundante
-  // (el hook ya carga la página 1 al montarse). Ver PacientesPage.
+  // Un solo efecto unifica ambos filtros (búsqueda y toggle) para que cada
+  // `setFilters` lleve SIEMPRE los dos valores vigentes: al depender de
+  // `[q, soloStockBajo]` no hay closure obsoleto (activar el toggle mientras un
+  // timeout de búsqueda estaba pendiente ya no revierte `soloStockBajo`). El
+  // debounce de 250ms sirve tanto para el tecleo como para el toggle; `setFilters`
+  // resetea a página 1 atómicamente. Se omite el primer render para no disparar un
+  // fetch redundante (el hook ya carga la página 1 al montarse). Ver PacientesPage.
   const isFirstSearch = useRef(true);
   useEffect(() => {
     if (isFirstSearch.current) {
       isFirstSearch.current = false;
       return;
     }
-    const t = setTimeout(() => setFilters({ q: q.trim() || undefined, soloStockBajo: soloStockBajo || undefined }), 250);
+    const t = setTimeout(
+      () => setFilters({ q: q.trim() || undefined, soloStockBajo: soloStockBajo || undefined }),
+      250,
+    );
     return () => clearTimeout(t);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [q]);
-
-  const toggleStockBajo = () => {
-    const next = !soloStockBajo;
-    setSoloStockBajo(next);
-    setFilters({ q: q.trim() || undefined, soloStockBajo: next || undefined });
-  };
+  }, [q, soloStockBajo, setFilters]);
 
   useEffect(() => {
     if (showModal) {
@@ -162,7 +162,7 @@ const MedicamentosPage: React.FC = () => {
             <Button
               type="button"
               variant={soloStockBajo ? 'primary' : 'default'}
-              onClick={toggleStockBajo}
+              onClick={() => setSoloStockBajo((v) => !v)}
               aria-pressed={soloStockBajo}
             >
               Solo stock bajo
