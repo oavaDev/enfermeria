@@ -136,12 +136,12 @@ const DashboardPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const navigate = useNavigate();
+  const today = todayISO();
 
   const loadData = useCallback(async () => {
     setLoading(true);
     setError(false);
     try {
-      const today = todayISO();
       const [resumen, controlesPorMes, remisionesPendientes, medicamentosStockBajo, controlesHoy] =
         await Promise.all([
           estadisticasService.getResumen(),
@@ -156,7 +156,7 @@ const DashboardPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [today]);
 
   useEffect(() => {
     loadData();
@@ -223,14 +223,14 @@ const DashboardPage: React.FC = () => {
           label="Stock bajo"
           total={medicamentosStockBajo.total}
           detail={stockBajoDetalle || undefined}
-          to="/medicamentos"
+          to="/medicamentos?soloStockBajo=1"
           tone="crit"
         />
         <PulsoCard
           icon={CalendarCheck}
           label="Controles de hoy"
           total={controlesHoy.total}
-          to="/controles"
+          to={`/controles?desde=${today}&hasta=${today}`}
           tone="accent"
         />
       </section>
