@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AlertTriangle, Eye, FileDown, Pencil, Plus, Trash2 } from 'lucide-react';
 import { pacientesService } from '../api/pacientes.service';
@@ -7,6 +7,7 @@ import { createPdf, addHeader, addFooter, drawTable, formatDate } from '../utils
 import { toast } from '../ui/Toast';
 import { ListPage } from '../components/list/ListPage';
 import { FilterBar } from '../components/list/FilterBar';
+import { usePagedList } from '../components/list/usePagedList';
 import { Table, THead, TBody, TR, TH, TD } from '../ui/Table';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
@@ -17,6 +18,11 @@ import { ConfirmDialog } from '../ui/ConfirmDialog';
 import type { Paciente } from '../types';
 
 const PAGE_SIZE = 20;
+
+type PacientesFilters = { q?: string };
+
+const fetchPacientes = (params: PacientesFilters & { page: number; limit: number }) =>
+  pacientesService.findAll(params);
 
 const emptyForm = {
   dni: '',
@@ -33,13 +39,23 @@ const emptyForm = {
 };
 
 const PacientesPage: React.FC = () => {
-  const [pacientes, setPacientes] = useState<Paciente[]>([]);
-  const [total, setTotal] = useState(0);
-  const [page, setPage] = useState(1);
+  const {
+    items: pacientes,
+    total,
+    page,
+    loading,
+    error,
+    setPage,
+    setFilters,
+    reload,
+    afterDelete,
+  } = usePagedList<Paciente, PacientesFilters>({
+    fetcher: fetchPacientes,
+    initialFilters: {},
+    pageSize: PAGE_SIZE,
+  });
+
   const [q, setQ] = useState('');
-  const [debouncedQ, setDebouncedQ] = useState('');
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
 
   const [showModal, setShowModal] = useState(false);
   const [editingPaciente, setEditingPaciente] = useState<Paciente | null>(null);
@@ -50,43 +66,18 @@ const PacientesPage: React.FC = () => {
   const { canWrite } = useAuth();
   const navigate = useNavigate();
 
-  const load = useCallback(async (searchQ: string, pageNum: number) => {
-    setLoading(true);
-    setError(false);
-    try {
-      const data = await pacientesService.findAll({
-        q: searchQ || undefined,
-        page: pageNum,
-        limit: PAGE_SIZE,
-      });
-      setPacientes(data.items);
-      setTotal(data.total);
-    } catch {
-      setError(true);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  // Debounce (250ms) de la búsqueda: solo actualiza `debouncedQ`.
-  useEffect(() => {
-    const t = setTimeout(() => setDebouncedQ(q), 250);
-    return () => clearTimeout(t);
-  }, [q]);
-
-  // Al cambiar el término buscado (no en el montaje inicial), vuelve a página 1.
+  // Debounce (250ms) de la búsqueda: al asentarse, `setFilters` resetea a página 1
+  // atómicamente. Se omite el primer render para no disparar un fetch redundante
+  // (el hook ya carga la página 1 al montarse).
   const isFirstSearch = useRef(true);
   useEffect(() => {
     if (isFirstSearch.current) {
       isFirstSearch.current = false;
       return;
     }
-    setPage(1);
-  }, [debouncedQ]);
-
-  useEffect(() => {
-    load(debouncedQ, page);
-  }, [debouncedQ, page, load]);
+    const t = setTimeout(() => setFilters({ q: q.trim() || undefined }), 250);
+    return () => clearTimeout(t);
+  }, [q, setFilters]);
 
   useEffect(() => {
     if (showModal) {
@@ -123,7 +114,7 @@ const PacientesPage: React.FC = () => {
       }
       setShowModal(false);
       setEditingPaciente(null);
-      load(debouncedQ, page);
+      reload();
     } catch (error: any) {
       toast.error(error.response?.data?.message ?? 'Error al guardar');
     } finally {
@@ -136,7 +127,7 @@ const PacientesPage: React.FC = () => {
     try {
       await pacientesService.remove(deletingPaciente.id);
       toast.success('Paciente dado de baja');
-      load(debouncedQ, page);
+      afterDelete();
     } catch {
       toast.error('Error al dar de baja');
     } finally {
@@ -201,7 +192,7 @@ const PacientesPage: React.FC = () => {
         }
         loading={loading}
         error={error}
-        onRetry={() => load(debouncedQ, page)}
+        onRetry={reload}
         isEmpty={!loading && !error && pacientes.length === 0}
         emptyMessage="Sin resultados"
         pagination={{ page, pageSize: PAGE_SIZE, total, onPageChange: setPage }}
