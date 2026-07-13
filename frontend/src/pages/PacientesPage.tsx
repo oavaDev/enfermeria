@@ -63,7 +63,7 @@ const PacientesPage: React.FC = () => {
   const [saving, setSaving] = useState(false);
   const [deletingPaciente, setDeletingPaciente] = useState<Paciente | null>(null);
 
-  const { canWrite } = useAuth();
+  const { isAdmin } = useAuth();
   const navigate = useNavigate();
 
   // Debounce (250ms) de la búsqueda: al asentarse, `setFilters` resetea a página 1
@@ -166,7 +166,7 @@ const PacientesPage: React.FC = () => {
             <Button variant="ghost" onClick={generatePdf}>
               <FileDown size={16} /> PDF
             </Button>
-            {canWrite && (
+            {isAdmin && (
               <Button
                 variant="primary"
                 onClick={() => {
@@ -231,7 +231,7 @@ const PacientesPage: React.FC = () => {
                     <Button size="sm" variant="ghost" onClick={() => navigate(`/pacientes/${p.id}`)}>
                       <Eye size={14} /> Ver
                     </Button>
-                    {canWrite && (
+                    {isAdmin && (
                       <>
                         <Button
                           size="sm"
