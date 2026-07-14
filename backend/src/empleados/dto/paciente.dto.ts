@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsBoolean, IsEmail, IsEnum } from 'class-validator';
+import { IsString, IsOptional, IsBoolean, IsEmail, IsEnum, IsNotEmpty, MaxLength } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
 import { TipoDocumento } from '@prisma/client';
@@ -13,6 +13,8 @@ export class CreatePacienteDto {
   tipoDocumento?: TipoDocumento;
 
   @ApiProperty({ example: '12345678' })
+  @IsNotEmpty()
+  @MaxLength(20)
   @IsString()
   numeroDocumento: string;
 
@@ -82,6 +84,7 @@ export class UpdatePacienteDto {
 
   @ApiPropertyOptional()
   @IsOptional()
+  @MaxLength(20)
   @Transform(toUndefinedIfEmpty)
   @IsString()
   numeroDocumento?: string;
