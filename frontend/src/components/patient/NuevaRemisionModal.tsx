@@ -7,9 +7,11 @@ import { Button } from '../../ui/Button';
 import { toast } from '../../ui/Toast';
 import { remisionesService } from '../../api/remisiones.service';
 import { motivosService } from '../../api/motivos.service';
+import { cie10Service } from '../../api/cie10.service';
 import { PatientPicker } from './PatientPicker';
 import { SuggestInput } from '../SuggestInput';
-import type { Remision, Paciente } from '../../types';
+import { SearchSelect } from '../SearchSelect';
+import type { Remision, Paciente, Cie10 } from '../../types';
 
 type Props = {
   open: boolean;
@@ -30,7 +32,7 @@ export function NuevaRemisionModal({ open, pacienteId, onOpenChange, onCreated }
   const [destino, setDestino] = useState('');
   const [fechaRemision, setFechaRemision] = useState(today());
   const [motivo, setMotivo] = useState('');
-  const [diagnostico, setDiagnostico] = useState('');
+  const [cie10, setCie10] = useState<Cie10 | null>(null);
   const [observaciones, setObservaciones] = useState('');
   const [saving, setSaving] = useState(false);
 
@@ -40,7 +42,7 @@ export function NuevaRemisionModal({ open, pacienteId, onOpenChange, onCreated }
     setDestino('');
     setFechaRemision(today());
     setMotivo('');
-    setDiagnostico('');
+    setCie10(null);
     setObservaciones('');
   };
 
@@ -62,7 +64,7 @@ export function NuevaRemisionModal({ open, pacienteId, onOpenChange, onCreated }
     setSaving(true);
     try {
       const dto: Partial<Remision> = { pacienteId: targetPacienteId, tipo, destino, fechaRemision, motivo };
-      if (diagnostico) dto.diagnostico = diagnostico;
+      if (cie10) dto.cie10Codigo = cie10.codigo;
       if (observaciones) dto.observaciones = observaciones;
 
       await remisionesService.create(dto);
@@ -123,12 +125,17 @@ export function NuevaRemisionModal({ open, pacienteId, onOpenChange, onCreated }
           required
           className="col-span-2"
         />
-        <Textarea
-          label="Diagnóstico"
-          value={diagnostico}
-          onChange={(e) => setDiagnostico(e.target.value)}
-          className="col-span-2"
-        />
+        <div className="col-span-2 flex flex-col gap-1">
+          <span className="text-xs uppercase tracking-wide text-faint font-medium">Diagnóstico (CIE-10)</span>
+          <SearchSelect<Cie10>
+            value={cie10}
+            onChange={setCie10}
+            fetcher={(q) => cie10Service.search(q)}
+            getLabel={(c) => `${c.codigo} — ${c.descripcion}`}
+            getKey={(c) => c.codigo}
+            placeholder="Buscar por código o descripción"
+          />
+        </div>
         <Textarea
           label="Observaciones"
           value={observaciones}

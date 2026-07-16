@@ -16,6 +16,7 @@ import {
 import { pacientesService } from '../api/pacientes.service';
 import { createPdf, addHeader, addFooter, drawTable, drawLabelValue, formatDate } from '../utils/pdf';
 import { formatDocumento } from '../lib/documento';
+import { formatDiagnostico } from '../lib/diagnostico';
 import { SEXO_LABELS } from '../lib/sexo';
 import { useTheme } from '../hooks/useTheme';
 import { Button } from '../ui/Button';
@@ -397,7 +398,10 @@ const PacienteDetailPage: React.FC = () => {
                       <TD className="tabular-nums">{formatDate(r.fechaRemision)}</TD>
                       <TD>{r.tipo}</TD>
                       <TD>{r.destino}</TD>
-                      <TD>{r.motivo}</TD>
+                      <TD>
+                        <div>{r.motivo}</div>
+                        <div className="text-xs text-faint">{formatDiagnostico(r)}</div>
+                      </TD>
                       <TD>
                         <Badge tone={estadoRemisionTone[r.estado] ?? 'neutral'}>{r.estado}</Badge>
                       </TD>
