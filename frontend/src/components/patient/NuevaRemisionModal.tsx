@@ -6,7 +6,9 @@ import { Textarea } from '../../ui/Textarea';
 import { Button } from '../../ui/Button';
 import { toast } from '../../ui/Toast';
 import { remisionesService } from '../../api/remisiones.service';
+import { motivosService } from '../../api/motivos.service';
 import { PatientPicker } from './PatientPicker';
+import { SuggestInput } from '../SuggestInput';
 import type { Remision, Paciente } from '../../types';
 
 type Props = {
@@ -113,12 +115,13 @@ export function NuevaRemisionModal({ open, pacienteId, onOpenChange, onCreated }
           onChange={(e) => setFechaRemision(e.target.value)}
         />
         <div />
-        <Textarea
+        <SuggestInput
           label="Motivo"
           value={motivo}
-          onChange={(e) => setMotivo(e.target.value)}
-          className="col-span-2"
+          onChange={setMotivo}
+          fetcher={(q) => motivosService.search(q)}
           required
+          className="col-span-2"
         />
         <Textarea
           label="Diagnóstico"

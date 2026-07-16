@@ -6,7 +6,9 @@ import { Textarea } from '../../ui/Textarea';
 import { Button } from '../../ui/Button';
 import { toast } from '../../ui/Toast';
 import { controlesService } from '../../api/controles.service';
+import { motivosService } from '../../api/motivos.service';
 import { PatientPicker } from './PatientPicker';
+import { SuggestInput } from '../SuggestInput';
 import type { Control, Paciente } from '../../types';
 
 type Props = {
@@ -149,7 +151,13 @@ export function NuevoControlModal({ open, pacienteId, onOpenChange, onCreated }:
         />
         <Input label="Peso (kg)" type="number" step="0.1" value={peso} onChange={(e) => setPeso(e.target.value)} />
         <Input label="Talla (cm)" type="number" value={talla} onChange={(e) => setTalla(e.target.value)} />
-        <Input label="Motivo" value={motivo} onChange={(e) => setMotivo(e.target.value)} className="col-span-2" />
+        <SuggestInput
+          label="Motivo"
+          value={motivo}
+          onChange={setMotivo}
+          fetcher={(q) => motivosService.search(q)}
+          className="col-span-2"
+        />
         <Textarea
           label="Observaciones"
           value={observaciones}
